@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define RED "\033[0;31m"
 #define GREEN "\033[0;32m"
@@ -160,6 +161,44 @@ void splashMissile(struct Board *player_board, struct Board *game_board, struct 
 
 void display(struct Board board) {
     for(int i = 0; i < board.height; ++i) {
+        if(i == 0)
+            printf("\xda");
+        else
+            printf("\xc3");
+
+        for(int k = 0; k <= board.width; ++k) {
+            printf("\xc4\xc4\xc4");
+
+            if(i == 0 && k == board.width)
+                printf("\xbf");
+            else if(i == 0)
+                printf("\xc2");
+            else if(k < board.width)
+                printf("\xc5");
+            else
+                printf("\xb4");
+        }
+
+        if(i == 0) {
+            printf("\n\xb3");
+
+            for(int k = 0; k <= board.width; ++k) {
+                printf(" %c \xb3", k? 65 + k - 1: '\xfe');
+            }
+
+            printf("\n\xc3");
+
+            for(int k = 0; k <= board.width; ++k) {
+                printf("\xc4\xc4\xc4");
+
+                if(k < board.width)
+                    printf("\xc5");
+                else
+                    printf("\xb4");
+            }
+        }
+
+        printf("\n\xb3 %d \xb3", i);
         for(int j = 0; j < board.width; ++j) {
             switch(board.pattern[board.width * i + j]) {
                 case '#':
@@ -174,13 +213,24 @@ void display(struct Board board) {
                     break;
             }
 
-            printf("%c", board.pattern[board.width * i + j]);
+            printf(" %c %s\xb3", board.pattern[board.width * i + j], RESET);
         }
-
-        printf(RESET);
 
         printf("\n");
     }
+
+    printf("\xc0");
+
+    for(int k = 0; k <= board.width; ++k) {
+        printf("\xc4\xc4\xc4");
+
+        if(k < board.width)
+            printf("\xc1");
+        else
+            printf("\xd9");
+    }
+
+    printf("\n");
 }
 
 int generatePlayerBoard(struct Board *board, struct Ship *ships, int n) {
@@ -332,6 +382,7 @@ int main() {
 
     struct Coord position;
     int missile_code;
+    char pos[3];
 
     display(game_board);
 
@@ -343,9 +394,12 @@ int main() {
         printf("4. Splash Missile\n");
 
         printf("Input positon (x, y, missile code): ");
-        scanf("%d", &position.x);
-        scanf("%d", &position.y);
+        fgets(pos, 3, stdin);
         scanf("%d", &missile_code);
+        while(getchar() != '\n');
+
+        position.x = toupper(pos[0]) - 65;
+        position.y = pos[1] - 48;
 
         missile[missile_code - 1](&player_board, &game_board, &ships, position);
 
@@ -369,8 +423,6 @@ int main() {
         display(game_board);
 
         if(flag == 0) break;
-
-        printf("====================\n");
 
         //pop(&list, &player_board, &game_board, position);
     }
